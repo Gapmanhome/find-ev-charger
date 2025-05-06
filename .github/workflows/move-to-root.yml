@@ -1,6 +1,6 @@
 name: Move project to root
 on:
-      workflow_dispatch:
+            workflow_dispatch:
 jobs:
   move:
     runs-on: ubuntu-latest
