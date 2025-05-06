@@ -1,21 +1,21 @@
-name: Move project to root
+name: Move project to repo root
 on:
-            workflow_dispatch:
+  workflow_dispatch:
 jobs:
   move:
     runs-on: ubuntu-latest
     steps:
-  - u  : actions/checkout@v4
-        with: { token: ${{ secrets.GITHUB_TOKEN }} }
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Move files
+      - name: Move Next.js files to root
         run: |
           shopt -s dotglob
           mv src/web/* .
-          rm -rf src/web
-          rm -f vercel.json
+          rm -rf src/web vercel.json
           git add .
-          git config user.name  "Operator Bot"
           git config user.email "bot@operator.local"
-          git commit -m "Move Next.js project to repo root (CI)"
-      - run: git push
+          git config user.name  "Operator Bot"
+          git commit -m "Move Next.js project to repo root"
+          git push
