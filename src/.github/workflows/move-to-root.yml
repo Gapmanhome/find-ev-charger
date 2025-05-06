@@ -1,0 +1,22 @@
+name: Move project to root and push
+on:
+  workflow_dispatch: {}
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Move files up one level
+        run: |
+          shopt -s dotglob
+          mv src/web/* .
+          rm -rf src
+      - name: Commit and push
+        run: |
+          git config --global user.email "bot@operator"
+          git config --global user.name "Operator Bot"
+          git add .
+          git commit -m "Move Next.js project to repo root"
+          git push
