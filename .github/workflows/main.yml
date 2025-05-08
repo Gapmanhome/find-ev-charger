@@ -1,7 +1,10 @@
 name: Weekly ETL
 on:
+  push:
+    branches: [nextjs-structure]
+  workflow_dispatch:
   schedule:
-    - cron:  '0 3 * * 1'   # Monday 03:00 UTC
+    - cron: '0 3 * * 1'   # Monday 03:00 UTC
 jobs:
   etl:
     runs-on: ubuntu-latest
