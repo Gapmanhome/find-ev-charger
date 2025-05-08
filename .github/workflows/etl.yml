@@ -1,7 +1,8 @@
 name: Weekly ETL
 on:
-  workflow_dispatch: {}
-  schedule:
+  wo    push:             # ← added
+       branches: [nextjs-structure]    push:             # ← added
+       e]
     - cron: '0 3 * * 1'   # Monday 03:00 UTC
 jobs:
   etl:
