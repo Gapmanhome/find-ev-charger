@@ -1,0 +1,29 @@
+name: Weekly ETL
+on:
+  push:
+    branches:
+      - sprint-etl-api
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'   # Monday 03:00 UTC
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ETL script
+        run: npx ts-node etl/fetch_nrcan.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
