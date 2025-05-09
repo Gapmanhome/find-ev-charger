@@ -1,6 +1,7 @@
 {
   "name": "find-ev-charger",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,10 +11,9 @@
     "next": "^12.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.5"
-  },
-    "@supabase/supabase-js": "2.11.0",
-    "pg": "8.11.1"
+
 }
+  "devDependencies": {
+  "typescript": "^5.25.0.4,
+  "@types/react": "^18.2.21",
+  "@types/node": "^20.5.0"
