@@ -19,8 +19,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci- name: Generate lockfile
+run: npm install --package-lock-only --force
+- name: Install deps
+run: npm ci
+- name: Run ETL
+run: npx ts-node etl/fetch_nrcan.ts
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Run ETL script
         run: npx ts-node etl/fetch_nrcan.ts
