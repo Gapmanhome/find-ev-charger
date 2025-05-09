@@ -7,10 +7,11 @@
     schedule:
       - cron: '0 3 * * 1'   # Monday 03:00 UTC
 
-jobs:
+jobs    e ild:
+
   etl:
-    runs-on: ubuntu-latest
-    steps:
+    runs-  on: ubuntu-latest
+      steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
