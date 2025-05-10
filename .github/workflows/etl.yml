@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: '20.x'
 
-        - name: Install dependencies
-      run: npm install --no-audit --no-fund
+       - name: Install deps
+  run: npm install --no-audit --no-fundd
 
 
       - name: Run ETL script
