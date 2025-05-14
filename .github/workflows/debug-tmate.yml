@@ -1,0 +1,10 @@
+name: debug-tmate
+on: workflow_dispatch
+jobs:
+  shell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true   # only you can connect
