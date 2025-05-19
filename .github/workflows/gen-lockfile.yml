@@ -1,0 +1,38 @@
+name: Generate Lockfile
+on: workflow_dispatch          # we will click “Run” once
+
+permissions:
+  contents: write              # allows the robot to commit
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # ➊ create ONLY the lockfile (skip scripts) — always works
+      - name: Make fresh package-lock.json
+        run: npm install --package-lock-only --ignore-scripts
+
+      # ➋ commit the new file
+      - name: Commit lockfile
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "actions@github.com"
+          git add package-lock.json
+          git commit -m "chore: add fresh lockfile for Next 14"
+
+      # ➌ push it to GitHub
+      - name: Push
+        run: git push
+
+      # ➍ remove this workflow so it never runs again
+      - name: Delete myself
+        run: |
+          git rm .github/workflows/gen-lockfile.yml
+          git commit -m "chore: remove one-time lockfile workflow [skip ci]"
+          git push
