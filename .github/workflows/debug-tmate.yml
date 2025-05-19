@@ -1,9 +1,9 @@
 name: debug-tmate
-on: workflow_dispatch
+on:
+  workflow_dispatch:
 jobs:
   shell:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: mxschmitt/action-tmate@v3
-        with:
