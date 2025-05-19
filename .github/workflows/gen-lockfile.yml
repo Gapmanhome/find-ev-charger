@@ -1,5 +1,5 @@
 name: Generate Lockfile
-on: workflow_dispatch
+on: push
 permissions:
   contents: write
 jobs:
@@ -15,7 +15,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "actions@github.com"
           git add package-lock.json
-          git commit -m "chore: update lockfile for Next 14"
+          git commit -m "chore: add fresh lockfile"
       - run: git push
       - run: |
           git rm .github/workflows/gen-lockfile.yml
