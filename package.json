@@ -9,7 +9,7 @@
     "etl": "ts-node etl/fetch_nrcan.ts"
   },
   "dependencies": {
-    "next": "^12.0.0",
+    "next": "^13.5.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
