@@ -7,4 +7,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: mxschmitt/action-tmate@v3
         with:
-          limit-access-to-actor: true   # only you can connect
+
