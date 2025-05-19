@@ -21,6 +21,7 @@ jobs:
 
       
       - name: Install dependencies
+        run: npm install --no-audit --no-fund
               run: npm install --no-audit --no-fund 
               p        x     ts-node etl/fetch_nrcan.ts
         env:
