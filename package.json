@@ -5,17 +5,18 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "etl": "ts-node etl/fetch_nrcan.ts"
   },
   "dependencies": {
     "next": "^12.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
-  
-}
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "ts-node": "^10.9.2",
+    "@types/react": "^18.2.21",
+    "@types/node": "^20.5.0"
   }
 }
-  "devDependencies": {
-  "typescript": "^5.25.0.4,
-  "@types/react": "^18.2.21",
-  "@types/node": "^20.5.0"
