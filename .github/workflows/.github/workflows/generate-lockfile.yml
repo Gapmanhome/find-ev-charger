@@ -1,5 +1,8 @@
 name: Generate Lockfile
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches: [ dev ]
 
 permissions:
   contents: write
@@ -14,20 +17,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: npm install → make lockfile
+      # If package.json is in a folder, change working-directory below.
+      - name: npm install → create lockfile
         run: npm install
+        working-directory: .
 
       - name: Commit lockfile
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "actions@github.com"
-          git add package-lock.json
+          git add ./package-lock.json
           git commit -m "chore: add package-lock.json"
 
       - name: Delete this workflow
         run: |
           git rm .github/workflows/generate-lockfile.yml
-          git commit -m "chore: remove one-time lockfile workflow [skip ci]"
+          git commit -m "chore: remove lockfile workflow [skip ci]"
 
       - name: Push changes
         run: git push
