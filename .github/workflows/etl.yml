@@ -23,7 +23,7 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Run ETL script
-        run: npx ts-node etl/fetch_nrcan.ts
+        run: npx ts-node-esm etl/fetch_nrcan.ts
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
