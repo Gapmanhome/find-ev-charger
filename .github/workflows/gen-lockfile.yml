@@ -1,0 +1,25 @@
+name: Generate Lockfile
+on:
+  push:
+    branches: [ main ]
+permissions:
+  contents: write
+jobs:
+  make-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "actions@github.com"
+          git add package-lock.json
+          git commit -m "chore: update lockfile after React 18 upgrade"
+      - run: git push
+      - run: |
+          git rm .github/workflows/gen-lockfile.yml
+          git commit -m "chore: remove one-time lockfile workflow [skip ci]"
+          git push
