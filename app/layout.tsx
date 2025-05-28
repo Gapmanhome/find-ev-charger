@@ -1,14 +1,23 @@
-import React from 'react';
+import './globals.css';
+import TopBar from './components/TopBar';
 
-const Layout = ({ children }) => {
-  return (
-    <div>
-      <header>
-        <h1>Find EV Charger</h1>
-      </header>
-      <main>{children}</main>
-    </div>
-  );
+export const metadata = {
+  title: 'FindEVCharger.ca',
+  description: 'Live Canadian EV-charger map'
 };
 
-export default Layout;
+export default function RootLayout({
+  children
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body style={{ margin: 0, height: '100%' }}>
+        <TopBar />
+        {children}
+      </body>
+    </html>
+  );
+}
+

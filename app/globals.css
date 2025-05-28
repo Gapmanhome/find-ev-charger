@@ -1,0 +1,109 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f7f9fa;
+}
+
+#map {
+  width: 100%;
+  height: calc(100vh - 56px);
+  margin-top: 56px;
+}
+
+.leaflet-container {}
+
+/* ────── Top bar & sidebar ────── */
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+}
+
+.brand {
+  color: #00895e;
+  font-size: 20px;
+  font-weight: 700;
+  margin-right: auto;
+}
+
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 56px;
+  bottom: 0;
+  width: 320px;
+  max-width: 90%;
+  overflow: auto;
+  background: #ffffff;
+  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.12);
+  padding: 18px 20px;
+  z-index: 998;
+}
+
+.poi {
+  font-size: 22px;
+  line-height: 1;
+  margin-right: 4px;
+}
+
+/* ────── Marker & cluster styles ────── */
+
+.marker-cluster-small  { background: #2196f3; color: #fff; }
+.marker-cluster-medium { background: #4caf50; color: #fff; }
+.marker-cluster-large  { background: #ff9800; color: #fff; }
+
+.leaflet-default-icon {
+  background-image: url("https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png");
+}
+
+/* ────── Search bar ────── */
+
+.search-input {
+  width: 280px;
+  max-width: 90vw;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Centre the geocoder control and override its inline style */
+
+.leaflet-control-geocoder {
+  position: absolute !important;
+  top: 15px !important;
+  left: 50% !important;
+  right: unset !important;
+  transform: translateX(-50%) !important;
+  margin: 0 !important;
+  float: none !important;
+  pointer-events: auto !important;
+}
+
+/* ────── Leaflet controls ────── */
+
+.leaflet-control-zoom {
+  top: 70px !important;
+  left: 10px !important;
+}
+
+/* ────── Keyboard focus outline ────── */
+
+:focus-visible {
+  outline: 2px solid #00895e;
+  outline-offset: 2px;
+}
+
+
+
+
+

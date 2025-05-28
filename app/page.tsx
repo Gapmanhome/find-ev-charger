@@ -1,11 +1,11 @@
-import React from 'react';
+'use client';
+import dynamic from 'next/dynamic';
 
-const Page = () => {
-  return (
-    <div>
-      <h1>Welcome to Find EV Charger</h1>
-    </div>
-  );
-};
+// Dynamically import MapView so it runs only in the browser
+const MapView = dynamic(() => import('./components/MapView'), {
+  ssr: false
+});
 
-export default Page;
+export default function Home() {
+  return <MapView />;
+}
