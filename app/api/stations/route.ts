@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/nextjs';
 
-export const revalidate = 900; // 15-min edge cache
+export const revalidate = 900;
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,9 +17,9 @@ export async function GET(req: NextRequest) {
     const ne = searchParams.get('ne');
 
     let q = sb
-      .from('v_stations')
+      .from('v_stations_plus')
       .select(
-        'id,name,street_address,city,province,postal_code,lat,lon,reliability'
+        'id,name,street_address,city,province,postal_code,lat,lon,reliability,amenities'
       );
 
     if (sw && ne) {
@@ -36,10 +36,7 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     const res = NextResponse.json({ data });
-    res.headers.set(
-      'Cache-Control',
-      's-maxage=900, stale-while-revalidate'
-    );
+    res.headers.set('Cache-Control', 's-maxage=900, stale-while-revalidate');
     return res;
   } catch (err: any) {
     Sentry.captureException(err);
@@ -49,5 +46,6 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
 
 

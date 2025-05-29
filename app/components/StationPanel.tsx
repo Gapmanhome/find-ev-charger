@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { getIcons } from './poiIcons';
 
 type Station = {
@@ -13,9 +13,8 @@ type Station = {
   lat: number;
   lon: number;
   reliability: number | null;
+  amenities: string[] | null;
 };
-
-type Amenity = { amenity_type: string };
 
 interface Props {
   station: Station | null;
@@ -23,18 +22,18 @@ interface Props {
 }
 
 export default function StationPanel({ station, onClose }: Props) {
-  const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [rated, setRated] = useState(false);
+  if (!station) return null;
 
-  useEffect(() => {
-    if (!station) return;
-    fetch(`/api/amenities?stationId=${station.id}`)
-      .then(r => r.json())
-      .then(r => setAmenities(r.data ?? []));
-  }, [station]);
+  const icons = getIcons(station.amenities ?? []);
+  const rel = station.reliability ?? 0;
+  const hue = 120 * (rel / 100);
+  const barColor = `hsl(${hue}, 70%, 45%)`;
+  const barWidth = `${rel}%`;
+  const relLabel = rel ? `${rel.toFixed(0)} % trustworthy` : 'No data yet';
 
   async function handleRate(rating: 1 | 0) {
-    if (!station || rated) return;
+    if (rated) return;
     try {
       await fetch('/api/checkins', {
         method: 'POST',
@@ -47,22 +46,9 @@ export default function StationPanel({ station, onClose }: Props) {
     }
   }
 
-  if (!station) return null;
-
-  const icons = getIcons(amenities.map(a => a.amenity_type));
-  const rel = station.reliability ?? 0;
-  const hue = 120 * (rel / 100);
-  const barColor = `hsl(${hue}, 70%, 45%)`;
-  const barWidth = `${rel}%`;
-  const relLabel = rel ? `${rel.toFixed(0)} % trustworthy` : 'No data yet';
-
   return (
     <aside className="station-panel">
-      <button
-        className="close"
-        aria-label="Close station details"
-        onClick={onClose}
-      >
+      <button className="close" aria-label="Close station details" onClick={onClose}>
         ×
       </button>
 
@@ -87,10 +73,7 @@ export default function StationPanel({ station, onClose }: Props) {
       <h3>Reliability</h3>
       <div className="trust-wrapper">
         <div className="trust-bar">
-          <div
-            className="fill"
-            style={{ width: barWidth, background: barColor }}
-          />
+          <div className="fill" style={{ width: barWidth, background: barColor }} />
         </div>
         <span className="trust-label">{relLabel}</span>
       </div>
@@ -175,6 +158,7 @@ export default function StationPanel({ station, onClose }: Props) {
     </aside>
   );
 }
+
 
 
 
