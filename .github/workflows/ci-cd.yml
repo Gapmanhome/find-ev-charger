@@ -30,5 +30,6 @@ jobs:
           vercel-args: '--prod'
           working-directory: .
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          skip-comment: true
+          github-comment: false   # ← stop posting the comment
+
 
