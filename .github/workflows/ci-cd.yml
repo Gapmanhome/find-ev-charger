@@ -22,7 +22,7 @@ jobs:
           SENTRY_RELEASE: ${{ github.sha }}
 
       - name: Upload source maps
-        uses: getsentry/action-upload-sourcemaps@v1
+        uses: getsentry/action-upload-sourcemaps@v1.4.0
         with:
           authToken: ${{ secrets.SENTRY_AUTH_TOKEN }}
           org: your-org
@@ -41,6 +41,7 @@ jobs:
           working-directory: .
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-comment: false
+
 
 
 
