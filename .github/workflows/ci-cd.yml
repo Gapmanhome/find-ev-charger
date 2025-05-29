@@ -3,26 +3,36 @@ name: CI-CD
 on:
   push:
     branches: [main]
-  pull_request:
 
 jobs:
-  build:
+  build_deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v2
         with:
           version: 9
-      - run: pnpm install
-      - run: pnpm run build
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: amondnet/vercel-action@v25
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+        env:
+          SENTRY_RELEASE: ${{ github.sha }}
+
+      - name: Upload source maps
+        uses: getsentry/action-upload-sourcemaps@v2
+        with:
+          authToken: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          org: your-org
+          project: find-ev-charger
+          release: ${{ github.sha }}
+          sourcemaps: .next
+          stripPrefix: "~"
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
@@ -30,6 +40,8 @@ jobs:
           vercel-args: '--prod'
           working-directory: .
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-comment: false   # ← stop posting the comment
+          github-comment: false
+
+
 
 
