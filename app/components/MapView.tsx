@@ -31,7 +31,7 @@ type Station = {
   lat: number;
   lon: number;
   reliability: number | null;
-  amenities?: string[] | null;
+  amenities: string[] | null;
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
@@ -117,5 +117,6 @@ export default function MapView() {
     </>
   );
 }
+
 
 
