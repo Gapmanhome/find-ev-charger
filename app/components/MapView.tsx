@@ -23,6 +23,11 @@ L.Icon.Default.mergeOptions({
 
 type Station = {
   id: number;
+  name?: string;
+  street_address?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
   lat: number;
   lon: number;
   reliability: number | null;
@@ -113,3 +118,4 @@ export default function MapView() {
     </>
   );
 }
+
