@@ -5,11 +5,11 @@ import { getIcons } from './poiIcons';
 
 type Station = {
   id: number;
-  name: string;
-  street_address: string;
-  city: string;
-  province: string;
-  postal_code: string;
+  name?: string;
+  street_address?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
   lat: number;
   lon: number;
   reliability: number | null;
@@ -66,12 +66,14 @@ export default function StationPanel({ station, onClose }: Props) {
         ×
       </button>
 
-      <h2>{station.name}</h2>
-      <p>
-        {station.street_address}
-        <br />
-        {station.city}, {station.province} {station.postal_code}
-      </p>
+      <h2>{station.name ?? 'Charging station'}</h2>
+      {station.street_address && (
+        <p>
+          {station.street_address}
+          <br />
+          {station.city}, {station.province} {station.postal_code}
+        </p>
+      )}
 
       <h3>Within&nbsp;250&nbsp;m</h3>
       {icons.length ? (
@@ -173,6 +175,7 @@ export default function StationPanel({ station, onClose }: Props) {
     </aside>
   );
 }
+
 
 
 
