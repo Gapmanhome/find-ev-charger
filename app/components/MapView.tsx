@@ -31,6 +31,7 @@ type Station = {
   lat: number;
   lon: number;
   reliability: number | null;
+  amenities?: string[] | null;
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
@@ -56,9 +57,7 @@ export default function MapView() {
     lastBox.current = bounds;
     const sw = bounds.getSouthWest();
     const ne = bounds.getNorthEast();
-    fetch(
-      `/api/stations?sw=${sw.lat},${sw.lng}&ne=${ne.lat},${ne.lng}&cols=id,lat,lon,reliability`,
-    )
+    fetch(`/api/stations?sw=${sw.lat},${sw.lng}&ne=${ne.lat},${ne.lng}`)
       .then(r => r.json())
       .then(r => setStations(r.data ?? []))
       .catch(console.error);
