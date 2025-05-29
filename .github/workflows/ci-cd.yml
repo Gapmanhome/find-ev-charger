@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v2
         with:
@@ -19,17 +21,18 @@ jobs:
       - name: Build
         run: pnpm run build
         env:
-          SENTRY_RELEASE: ${{ github.sha }}
+          NEXT_PUBLIC_SENTRY_RELEASE: ${{ github.sha }}
 
-      - name: Upload source maps
-        uses: getsentry/action-upload-sourcemaps@v1.4.0
+      - name: Create Sentry release + upload source maps
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
-          authToken: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          org: your-org
-          project: find-ev-charger
-          release: ${{ github.sha }}
+          environment: production
           sourcemaps: .next
-          stripPrefix: "~"
+          release: ${{ github.sha }}
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
