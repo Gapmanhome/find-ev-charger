@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/nextjs';
 
+export const revalidate = 900; // 15-min edge cache
+
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -10,9 +12,9 @@ const sb = createClient(
 
 export async function GET(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const sw = url.searchParams.get('sw'); // "lat,lon"
-    const ne = url.searchParams.get('ne'); // "lat,lon"
+    const { searchParams } = new URL(req.url);
+    const sw = searchParams.get('sw');
+    const ne = searchParams.get('ne');
 
     let q = sb
       .from('v_stations')
@@ -31,16 +33,21 @@ export async function GET(req: NextRequest) {
     }
 
     const { data, error } = await q.limit(2000);
+    if (error) throw error;
 
-    if (error) {
-      Sentry.captureException(error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ data });
-  } catch (error) {
-    Sentry.captureException(error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    const res = NextResponse.json({ data });
+    res.headers.set(
+      'Cache-Control',
+      's-maxage=900, stale-while-revalidate'
+    );
+    return res;
+  } catch (err: any) {
+    Sentry.captureException(err);
+    return NextResponse.json(
+      { error: err?.message || 'Server error' },
+      { status: 500 }
+    );
   }
 }
+
 
