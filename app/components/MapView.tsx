@@ -16,9 +16,9 @@ import L from 'leaflet';
 import StationPanel from './StationPanel';
 
 L.Icon.Default.mergeOptions({
-  iconUrl: '/leaflet/marker-icon.png',
-  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
+  iconUrl: '/marker-icon.png',
+  iconRetinaUrl: '/marker-icon-2x.png',
+  shadowUrl: '/marker-shadow.png',
 });
 
 type Station = {
@@ -118,4 +118,5 @@ export default function MapView() {
     </>
   );
 }
+
 
