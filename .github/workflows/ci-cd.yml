@@ -2,24 +2,22 @@ name: CI-CD
 
 on:
   push:
-    branches: [main]
+    tags:
+      - 'v*'         # deploy only when you push a tag like v1.0.0
+  workflow_dispatch:  # add a manual “Run workflow” button in GitHub UI
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v2
         with:
           version: 9
-
       - name: Install
         run: pnpm install --no-frozen-lockfile
-
       - name: Build
         run: pnpm run build
-
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
