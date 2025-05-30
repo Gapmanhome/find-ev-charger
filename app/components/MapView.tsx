@@ -31,14 +31,13 @@ type Station = {
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 6;     // starts wide
+const MAP_ZOOM = 6;
 
 export default function MapView() {
   const [stations, setStations] = useState<Station[]>([]);
   const [selected, setSelected] = useState<Station | null>(null);
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
 
-  /* fetch stations in the visible box */
   function fetchBox(box: L.LatLngBounds) {
     const sw = box.getSouthWest();
     const ne = box.getNorthEast();
@@ -48,7 +47,6 @@ export default function MapView() {
       .catch(console.error);
   }
 
-  /* add cluster layer once */
   function ClusterLayer() {
     const map = useMap();
     if (!clusterRef.current) {
@@ -63,32 +61,14 @@ export default function MapView() {
     return null;
   }
 
-  /* zoom-on-first-click helper */
-  function FirstClickZoom() {
-    const map = useMapEvents({
-      click: () => {
-        if (map.getZoom() < 7) {
-          map.zoomIn();          // zoom once
-        }
-        map.off('click');         // remove listener
-      },
-    });
-    return null;
-  }
-
-  /* watch map moves */
   function BoundsWatcher() {
     const map = useMapEvents({
       moveend: () => fetchBox(map.getBounds()),
       zoomend: () => fetchBox(map.getBounds()),
     });
-    useEffect(() => {
-      fetchBox(map.getBounds());   // initial load
-    }, []);
-    return null;
+    return null; // first fetch happens after the user's first move/zoom
   }
 
-  /* rebuild markers whenever stations change */
   useEffect(() => {
     const group = clusterRef.current;
     if (!group) return;
@@ -120,13 +100,13 @@ export default function MapView() {
         />
         <ClusterLayer />
         <BoundsWatcher />
-        <FirstClickZoom />   {/* ← zoom helper */}
       </MapContainer>
 
       <StationPanel station={selected} onClose={() => setSelected(null)} />
     </>
   );
 }
+
 
 
 
