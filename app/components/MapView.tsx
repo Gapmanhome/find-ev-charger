@@ -31,7 +31,7 @@ type Station = {
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 6;
+const MAP_ZOOM = 7; // closer start
 
 export default function MapView() {
   const [stations, setStations] = useState<Station[]>([]);
@@ -66,7 +66,10 @@ export default function MapView() {
       moveend: () => fetchBox(map.getBounds()),
       zoomend: () => fetchBox(map.getBounds()),
     });
-    return null; // first fetch happens after the user's first move/zoom
+    useEffect(() => {
+      fetchBox(map.getBounds()); // fetch immediately on first paint
+    }, []);
+    return null;
   }
 
   useEffect(() => {
@@ -74,7 +77,7 @@ export default function MapView() {
     if (!group) return;
     group.clearLayers();
     stations.forEach(st => {
-      const m = L.marker([st.lat, st.lon])
+      const marker = L.marker([st.lat, st.lon])
         .on('click', () => setSelected(st))
         .bindPopup(
           st.reliability == null
@@ -83,17 +86,13 @@ export default function MapView() {
                 st.reliability > 1 ? st.reliability : st.reliability * 100,
               )}% reliable`,
         );
-      group.addLayer(m);
+      group.addLayer(marker);
     });
   }, [stations]);
 
   return (
     <>
-      <MapContainer
-        center={MAP_CENTER}
-        zoom={MAP_ZOOM}
-        style={{ height: '100%', width: '100%' }}
-      >
+      <MapContainer center={MAP_CENTER} zoom={MAP_ZOOM} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution="© OpenStreetMap"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -106,6 +105,7 @@ export default function MapView() {
     </>
   );
 }
+
 
 
 
