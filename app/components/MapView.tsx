@@ -31,13 +31,14 @@ type Station = {
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 6; // start wide, then auto-zoom to 7
+const MAP_ZOOM = 6;
 
 export default function MapView() {
   const [stations, setStations] = useState<Station[]>([]);
   const [selected, setSelected] = useState<Station | null>(null);
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
 
+  /* fetch stations inside a lat-lon box */
   function fetchBox(box: L.LatLngBounds) {
     const sw = box.getSouthWest();
     const ne = box.getNorthEast();
@@ -47,6 +48,7 @@ export default function MapView() {
       .catch(console.error);
   }
 
+  /* create the chunk-loading cluster layer once */
   function ClusterLayer() {
     const map = useMap();
     if (!clusterRef.current) {
@@ -61,44 +63,39 @@ export default function MapView() {
     return null;
   }
 
-  function AutoZoomIn() {
-    const map = useMap();
-    useEffect(() => {
-      // give the map one tick to render, then zoom in by 1
-      requestAnimationFrame(() => {
-        if (map.getZoom() === MAP_ZOOM) {
-          map.zoomIn(); // goes to zoom 7
-        }
-      });
-    }, [map]);
-    return null;
-  }
-
+  /* watch moves & zooms and fetch stations */
   function BoundsWatcher() {
     const map = useMapEvents({
       moveend: () => fetchBox(map.getBounds()),
       zoomend: () => fetchBox(map.getBounds()),
     });
     useEffect(() => {
-      fetchBox(map.getBounds()); // first fetch at zoom 6
+      fetchBox(map.getBounds());    // first fetch
     }, []);
     return null;
   }
 
+  /* rebuild marker layer when station list changes */
   useEffect(() => {
+    const map = clusterRef.current?._map; // Leaflet map instance
     const group = clusterRef.current;
     if (!group) return;
+
     group.clearLayers();
+
     stations.forEach(st => {
       const marker = L.marker([st.lat, st.lon])
-        .on('click', () => setSelected(st))
         .bindPopup(
           st.reliability == null
             ? 'calculating…'
             : `${Math.round(
                 st.reliability > 1 ? st.reliability : st.reliability * 100,
               )}% reliable`,
-        );
+        )
+        .on('click', () => {
+          setSelected(st);          // open side drawer
+          map?.zoomIn(1);           // zoom in a little on pin click
+        });
       group.addLayer(marker);
     });
   }, [stations]);
@@ -112,13 +109,13 @@ export default function MapView() {
         />
         <ClusterLayer />
         <BoundsWatcher />
-        <AutoZoomIn /> {/* zooms itself from 6 → 7 right after paint */}
       </MapContainer>
 
       <StationPanel station={selected} onClose={() => setSelected(null)} />
     </>
   );
 }
+
 
 
 
