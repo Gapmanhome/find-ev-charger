@@ -35,7 +35,7 @@ type Station = {
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 4.5;
+const MAP_ZOOM = 5.5;
 
 export default function MapView() {
   const [stations, setStations] = useState<Station[]>([]);
