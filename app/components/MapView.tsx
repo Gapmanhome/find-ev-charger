@@ -31,7 +31,7 @@ type Station = {
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 7; // closer start
+const MAP_ZOOM = 6; // start wide, then auto-zoom to 7
 
 export default function MapView() {
   const [stations, setStations] = useState<Station[]>([]);
@@ -61,13 +61,26 @@ export default function MapView() {
     return null;
   }
 
+  function AutoZoomIn() {
+    const map = useMap();
+    useEffect(() => {
+      // give the map one tick to render, then zoom in by 1
+      requestAnimationFrame(() => {
+        if (map.getZoom() === MAP_ZOOM) {
+          map.zoomIn(); // goes to zoom 7
+        }
+      });
+    }, [map]);
+    return null;
+  }
+
   function BoundsWatcher() {
     const map = useMapEvents({
       moveend: () => fetchBox(map.getBounds()),
       zoomend: () => fetchBox(map.getBounds()),
     });
     useEffect(() => {
-      fetchBox(map.getBounds()); // fetch immediately on first paint
+      fetchBox(map.getBounds()); // first fetch at zoom 6
     }, []);
     return null;
   }
@@ -99,12 +112,14 @@ export default function MapView() {
         />
         <ClusterLayer />
         <BoundsWatcher />
+        <AutoZoomIn /> {/* zooms itself from 6 → 7 right after paint */}
       </MapContainer>
 
       <StationPanel station={selected} onClose={() => setSelected(null)} />
     </>
   );
 }
+
 
 
 
