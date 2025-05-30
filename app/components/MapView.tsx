@@ -31,14 +31,14 @@ type Station = {
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 6; // one step closer than before
+const MAP_ZOOM = 6; // starts closer than before
 
 export default function MapView() {
   const [stations, setStations] = useState<Station[]>([]);
   const [selected, setSelected] = useState<Station | null>(null);
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
 
-  /** fetch stations for the visible box */
+  /** fetch stations inside current box */
   function fetchBox(box: L.LatLngBounds) {
     const sw = box.getSouthWest();
     const ne = box.getNorthEast();
@@ -48,12 +48,13 @@ export default function MapView() {
       .catch(console.error);
   }
 
-  /** Add the cluster layer once */
+  /** add cluster layer once */
   function ClusterLayer() {
     const map = useMap();
     if (!clusterRef.current) {
       clusterRef.current = L.markerClusterGroup({
-        chunkedLoading: true,    // ⭐ really chunks now
+        chunkedLoading: true,          // ← real chunking
+        chunkInterval: 20,             // 20 ms slices
         maxClusterRadius: 50,
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
@@ -63,33 +64,33 @@ export default function MapView() {
     return null;
   }
 
-  /** Watch map moves */
+  /** watch map moves */
   function BoundsWatcher() {
     const map = useMapEvents({
       moveend: () => fetchBox(map.getBounds()),
       zoomend: () => fetchBox(map.getBounds()),
     });
     useEffect(() => {
-      fetchBox(map.getBounds()); // first load
+      fetchBox(map.getBounds());      // first load
     }, []);
     return null;
   }
 
-  /** Rebuild markers when stations array changes */
+  /** rebuild markers when stations change */
   useEffect(() => {
     const group = clusterRef.current;
     if (!group) return;
     group.clearLayers();
     stations.forEach(st => {
       const marker = L.marker([st.lat, st.lon])
+        .on('click', () => setSelected(st))
         .bindPopup(
           st.reliability == null
             ? 'calculating…'
             : `${Math.round(
                 st.reliability > 1 ? st.reliability : st.reliability * 100,
               )}% reliable`,
-        )
-        .on('click', () => setSelected(st));
+        );
       group.addLayer(marker);
     });
   }, [stations]);
@@ -99,7 +100,6 @@ export default function MapView() {
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        scrollWheelZoom
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -114,6 +114,7 @@ export default function MapView() {
     </>
   );
 }
+
 
 
 
