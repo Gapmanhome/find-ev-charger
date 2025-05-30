@@ -31,14 +31,14 @@ type Station = {
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 6; // starts closer than before
+const MAP_ZOOM = 6;     // starts wide
 
 export default function MapView() {
   const [stations, setStations] = useState<Station[]>([]);
   const [selected, setSelected] = useState<Station | null>(null);
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
 
-  /** fetch stations inside current box */
+  /* fetch stations in the visible box */
   function fetchBox(box: L.LatLngBounds) {
     const sw = box.getSouthWest();
     const ne = box.getNorthEast();
@@ -48,41 +48,53 @@ export default function MapView() {
       .catch(console.error);
   }
 
-  /** add cluster layer once */
+  /* add cluster layer once */
   function ClusterLayer() {
     const map = useMap();
     if (!clusterRef.current) {
       clusterRef.current = L.markerClusterGroup({
-        chunkedLoading: true,          // ← real chunking
-        chunkInterval: 20,             // 20 ms slices
+        chunkedLoading: true,
+        chunkInterval: 20,
         maxClusterRadius: 50,
         spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
       });
       map.addLayer(clusterRef.current);
     }
     return null;
   }
 
-  /** watch map moves */
+  /* zoom-on-first-click helper */
+  function FirstClickZoom() {
+    const map = useMapEvents({
+      click: () => {
+        if (map.getZoom() < 7) {
+          map.zoomIn();          // zoom once
+        }
+        map.off('click');         // remove listener
+      },
+    });
+    return null;
+  }
+
+  /* watch map moves */
   function BoundsWatcher() {
     const map = useMapEvents({
       moveend: () => fetchBox(map.getBounds()),
       zoomend: () => fetchBox(map.getBounds()),
     });
     useEffect(() => {
-      fetchBox(map.getBounds());      // first load
+      fetchBox(map.getBounds());   // initial load
     }, []);
     return null;
   }
 
-  /** rebuild markers when stations change */
+  /* rebuild markers whenever stations change */
   useEffect(() => {
     const group = clusterRef.current;
     if (!group) return;
     group.clearLayers();
     stations.forEach(st => {
-      const marker = L.marker([st.lat, st.lon])
+      const m = L.marker([st.lat, st.lon])
         .on('click', () => setSelected(st))
         .bindPopup(
           st.reliability == null
@@ -91,7 +103,7 @@ export default function MapView() {
                 st.reliability > 1 ? st.reliability : st.reliability * 100,
               )}% reliable`,
         );
-      group.addLayer(marker);
+      group.addLayer(m);
     });
   }, [stations]);
 
@@ -108,12 +120,14 @@ export default function MapView() {
         />
         <ClusterLayer />
         <BoundsWatcher />
+        <FirstClickZoom />   {/* ← zoom helper */}
       </MapContainer>
 
       <StationPanel station={selected} onClose={() => setSelected(null)} />
     </>
   );
 }
+
 
 
 
