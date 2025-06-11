@@ -4,15 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
-  Popup,
+  CircleMarker,
+  Marker,
   useMap,
   useMapEvents,
 } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import L from 'leaflet';
-import 'leaflet.markercluster';
+import 'leaflet/dist/leaflet.css';
 import StationPanel from './StationPanel';
 
 L.Icon.Default.mergeOptions({
@@ -21,100 +19,102 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '/marker-shadow.png',
 });
 
-type Station = {
-  id: number;
-  name?: string;
-  lat: number;
-  lon: number;
-  reliability: number | null;
-  amenities: string[] | null;
+type Cluster = {
+  id?: number;           // present on single pins
+  properties: {
+    cluster?: boolean;
+    point_count?: number;
+  };
+  geometry: { coordinates: [number, number] };
 };
 
 const MAP_CENTER: [number, number] = [59, -96];
-const MAP_ZOOM = 6;
+const MAP_ZOOM = 4;
 
 export default function MapView() {
-  const [stations, setStations] = useState<Station[]>([]);
-  const [selected, setSelected] = useState<Station | null>(null);
-  const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const [clusters, setClusters] = useState<Cluster[]>([]);
+  const [selected, setSelected] = useState<number | null>(null);
+  const mapRef = useRef<L.Map>(null);
 
-  /* fetch stations inside a lat-lon box */
-  function fetchBox(box: L.LatLngBounds) {
-    const sw = box.getSouthWest();
-    const ne = box.getNorthEast();
-    fetch(`/api/stations?sw=${sw.lat},${sw.lng}&ne=${ne.lat},${ne.lng}`)
+  function fetchClusters() {
+    const map = mapRef.current;
+    if (!map) return;
+    const b = map.getBounds();
+    const sw = b.getSouthWest();
+    const ne = b.getNorthEast();
+    const url = `/api/clusters?sw=${sw.lat},${sw.lng}&ne=${ne.lat},${ne.lng}&z=${map.getZoom()}`;
+    fetch(url)
       .then(r => r.json())
-      .then(r => setStations(r.data ?? []))
+      .then(setClusters)
       .catch(console.error);
   }
 
-  /* create the chunk-loading cluster layer once */
-  function ClusterLayer() {
-    const map = useMap();
-    if (!clusterRef.current) {
-      clusterRef.current = L.markerClusterGroup({
-        chunkedLoading: true,
-        chunkInterval: 20,
-        maxClusterRadius: 50,
-        spiderfyOnMaxZoom: true,
-      });
-      map.addLayer(clusterRef.current);
-    }
-    return null;
-  }
-
-  /* watch moves & zooms and fetch stations */
   function BoundsWatcher() {
     const map = useMapEvents({
-      moveend: () => fetchBox(map.getBounds()),
-      zoomend: () => fetchBox(map.getBounds()),
+      moveend: fetchClusters,
+      zoomend: fetchClusters,
     });
-    useEffect(() => {
-      fetchBox(map.getBounds());    // first fetch
-    }, []);
+    useEffect(fetchClusters, []); // first load
     return null;
   }
-
-  /* rebuild marker layer when station list changes */
-  useEffect(() => {
-    const map = clusterRef.current?._map; // Leaflet map instance
-    const group = clusterRef.current;
-    if (!group) return;
-
-    group.clearLayers();
-
-    stations.forEach(st => {
-      const marker = L.marker([st.lat, st.lon])
-        .bindPopup(
-          st.reliability == null
-            ? 'calculating…'
-            : `${Math.round(
-                st.reliability > 1 ? st.reliability : st.reliability * 100,
-              )}% reliable`,
-        )
-        .on('click', () => {
-          setSelected(st);          // open side drawer
-          map?.zoomIn(1);           // zoom in a little on pin click
-        });
-      group.addLayer(marker);
-    });
-  }, [stations]);
 
   return (
     <>
-      <MapContainer center={MAP_CENTER} zoom={MAP_ZOOM} style={{ height: '100%', width: '100%' }}>
+      <MapContainer
+        center={MAP_CENTER}
+        zoom={MAP_ZOOM}
+        whenCreated={m => (mapRef.current = m)}
+        style={{ height: '100%', width: '100%' }}
+      >
         <TileLayer
           attribution="© OpenStreetMap"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <ClusterLayer />
         <BoundsWatcher />
+
+        {clusters.map((c, i) =>
+          c.properties.cluster ? (
+            <CircleMarker
+              key={i}
+              center={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
+              radius={20}
+              pathOptions={{ color: '#1976d2', fillOpacity: 0.6 }}
+              eventHandlers={{
+                click: () => {
+                  const map = mapRef.current;
+                  if (map) map.flyTo([c.geometry.coordinates[1], c.geometry.coordinates[0]], map.getZoom() + 2);
+                },
+              }}
+            >
+              <div
+                style={{
+                  color: 'white',
+                  fontSize: '12px',
+                  textAlign: 'center',
+                  transform: 'translate(-50%, -50%)',
+                }}
+              >
+                {c.properties.point_count}
+              </div>
+            </CircleMarker>
+          ) : (
+            <Marker
+              key={c.id}
+              position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
+              eventHandlers={{ click: () => setSelected(c.id ?? null) }}
+            />
+          )
+        )}
       </MapContainer>
 
-      <StationPanel station={selected} onClose={() => setSelected(null)} />
+      <StationPanel
+        stationId={selected}
+        onClose={() => setSelected(null)}
+      />
     </>
   );
 }
+
 
 
 
