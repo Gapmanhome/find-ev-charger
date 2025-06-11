@@ -29,7 +29,7 @@ const MAP_ZOOM = 4;
 export default function MapView() {
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
-  const mapRef = useRef<L.Map>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
   function fetchClusters() {
     const map = mapRef.current;
@@ -44,10 +44,12 @@ export default function MapView() {
       .catch(console.error);
   }
 
-  /* initial fetch */
-  useEffect(fetchClusters, []);
+  /* initial fetch once map is ready */
+  useEffect(() => {
+    fetchClusters();
+  }, []);
 
-  /* refetch on move/zoom */
+  /* refetch on pan / zoom */
   useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
 
   return (
@@ -55,10 +57,8 @@ export default function MapView() {
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        whenReady={(map: L.Map) => {
-          mapRef.current = map;   // set ref correctly
-          fetchClusters();        // initial clusters
-        }}
+        ref={mapRef}
+        whenReady={() => fetchClusters()}  {/* no arguments = no TS error */}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -102,6 +102,7 @@ export default function MapView() {
     </>
   );
 }
+
 
 
 
