@@ -5,7 +5,6 @@ import {
   MapContainer,
   TileLayer,
   Marker,
-  CircleMarker,
   useMapEvents,
 } from 'react-leaflet';
 import L from 'leaflet';
@@ -32,7 +31,6 @@ export default function MapView() {
   const [selected, setSelected] = useState<number | null>(null);
   const mapRef = useRef<L.Map>(null);
 
-  /* fetch clusters inside current box */
   function fetchClusters() {
     const map = mapRef.current;
     if (!map) return;
@@ -46,20 +44,20 @@ export default function MapView() {
       .catch(console.error);
   }
 
+  /* initial fetch */
   useEffect(fetchClusters, []);
 
-  useMapEvents({
-    moveend: fetchClusters,
-    zoomend: fetchClusters,
-  });
+  /* refetch on move/zoom */
+  useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
 
   return (
     <>
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        whenReady={({ target }) => {
-          mapRef.current = target;   // map is ready here
+        whenReady={(map: L.Map) => {
+          mapRef.current = map;   // set ref correctly
+          fetchClusters();        // initial clusters
         }}
         style={{ height: '100%', width: '100%' }}
       >
@@ -104,6 +102,8 @@ export default function MapView() {
     </>
   );
 }
+
+
 
 
 
