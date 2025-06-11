@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   MapContainer,
   TileLayer,
-  CircleMarker,
   Marker,
+  CircleMarker,
   useMapEvents,
 } from 'react-leaflet';
 import L from 'leaflet';
@@ -32,6 +32,7 @@ export default function MapView() {
   const [selected, setSelected] = useState<number | null>(null);
   const mapRef = useRef<L.Map>(null);
 
+  /* fetch clusters inside current box */
   function fetchClusters() {
     const map = mapRef.current;
     if (!map) return;
@@ -45,9 +46,7 @@ export default function MapView() {
       .catch(console.error);
   }
 
-  useEffect(() => {
-    fetchClusters(); // initial load
-  }, []);
+  useEffect(fetchClusters, []);
 
   useMapEvents({
     moveend: fetchClusters,
@@ -59,7 +58,9 @@ export default function MapView() {
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        whenCreated={m => (mapRef.current = m)}
+        whenReady={({ target }) => {
+          mapRef.current = target;   // map is ready here
+        }}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -69,11 +70,14 @@ export default function MapView() {
 
         {clusters.map((c, i) =>
           c.properties.cluster ? (
-            <CircleMarker
+            <Marker
               key={i}
-              center={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
-              radius={18}
-              pathOptions={{ color: '#1976d2', weight: 1, fillOpacity: 0.6 }}
+              position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
+              icon={L.divIcon({
+                className: 'cluster-bubble',
+                html: `<div>${c.properties.point_count}</div>`,
+                iconSize: [30, 30],
+              })}
               eventHandlers={{
                 click: () => {
                   mapRef.current?.flyTo(
@@ -82,17 +86,7 @@ export default function MapView() {
                   );
                 },
               }}
-            >
-              <text
-                x={0}
-                y={0}
-                textAnchor="middle"
-                dy=".3em"
-                style={{ fill: 'white', fontSize: '12px' }}
-              >
-                {c.properties.point_count}
-              </text>
-            </CircleMarker>
+            />
           ) : (
             <Marker
               key={c.id}
@@ -110,6 +104,7 @@ export default function MapView() {
     </>
   );
 }
+
 
 
 
