@@ -1,3 +1,4 @@
+------ START COPY ------
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
@@ -31,6 +32,7 @@ export default function MapView() {
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
 
+  /* fetch clusters for the current map view */
   const fetchClusters = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
@@ -42,11 +44,11 @@ export default function MapView() {
       const json = await res.json();
       setClusters(json);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Failed to load clusters', err);
     }
   }, []);
 
+  /* watch for pan / zoom */
   function BoundsWatcher() {
     useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
     return null;
@@ -57,9 +59,7 @@ export default function MapView() {
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        ref={(m) => {
-          if (m) mapRef.current = m;
-        }}
+        ref={(m) => (mapRef.current = m ?? null)}
         whenReady={fetchClusters}
         style={{ height: '100%', width: '100%' }}
       >
@@ -72,26 +72,32 @@ export default function MapView() {
 
         {clusters.map((c) =>
           c.properties.cluster ? (
+            /* cluster bubble */
             <Marker
-              key={c.id}
+              key={`cluster-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
               icon={L.divIcon({
                 className: 'cluster-bubble',
                 html: `<div>${c.properties.point_count}</div>`,
                 iconSize: [30, 30],
                 iconAnchor: [15, 15],
-                interactive: true, /* now clickable */
+                interactive: true,
               })}
               eventHandlers={{
                 click: () => {
-                  mapRef.current?.flyTo(
+                  const map = mapRef.current;
+                  if (!map) return;
+                  const next = Math.min(map.getZoom() + 2, 18); // don’t zoom past 18
+                  map.flyTo(
                     [c.geometry.coordinates[1], c.geometry.coordinates[0]],
-                    mapRef.current.getZoom() + 2
+                    next,
+                    { duration: 0.3 }
                   );
                 },
               }}
             />
           ) : (
+            /* single station pin */
             <Marker
               key={`station-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
@@ -105,7 +111,6 @@ export default function MapView() {
 
       <StationPanel stationId={selected} onClose={() => setSelected(null)} />
 
-      {/* cursor hint */}
       <style jsx global>{`
         .cluster-bubble {
           cursor: pointer;
@@ -114,6 +119,8 @@ export default function MapView() {
     </>
   );
 }
+------ END COPY ------
+
 
 
 
