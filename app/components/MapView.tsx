@@ -9,15 +9,15 @@ import {
 } from 'react-leaflet';
 import L, { LatLngBounds } from 'leaflet';
 import StationPanel from './StationPanel';
-import '@fortawesome/fontawesome-free/css/all.min.css'; /* keeps icons if you need */
 
+/* Leaflet icon paths */
 L.Icon.Default.mergeOptions({
   iconUrl: '/marker-icon.png',
   iconRetinaUrl: '/marker-icon-2x.png',
   shadowUrl: '/marker-shadow.png',
 });
 
-/* ---------- types ---------- */
+/* ------------ types ------------ */
 type Station = {
   id: number;
   name: string;
@@ -41,7 +41,7 @@ export default function MapView() {
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
-  /* ---------------- load clusters ---------------- */
+  /* load clusters for current map view */
   const fetchClusters = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
@@ -57,7 +57,7 @@ export default function MapView() {
     }
   }, []);
 
-  /* --------------- load one station --------------- */
+  /* helper: fetch one station */
   async function loadStation(id: number) {
     try {
       const res = await fetch(`/api/stations/${id}`);
@@ -68,21 +68,19 @@ export default function MapView() {
     }
   }
 
-  /* -------------- watch pan / zoom ---------------- */
+  /* watch pan / zoom */
   function BoundsWatcher() {
     useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
     return null;
   }
 
-  /* --------------- fix white first view ----------- */
+  /* fix white first view */
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    /* allow one tick, then force Leaflet to size itself */
     setTimeout(() => map.invalidateSize(), 0);
   }, []);
 
-  /* ------------------- JSX ------------------------ */
   return (
     <>
       <MapContainer
@@ -101,7 +99,6 @@ export default function MapView() {
 
         {clusters.map((c) =>
           c.properties.cluster ? (
-            /* green cluster bubble */
             <Marker
               key={`cluster-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
@@ -125,7 +122,6 @@ export default function MapView() {
               }}
             />
           ) : (
-            /* blue station pin */
             <Marker
               key={`station-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
@@ -161,6 +157,7 @@ export default function MapView() {
     </>
   );
 }
+
 
 
 
