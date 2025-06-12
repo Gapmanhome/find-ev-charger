@@ -112,6 +112,8 @@ html, body {
   text-align: center;
   font-size: 13px;
 }
+@import url('leaflet/dist/leaflet.css');
+
 
 
 

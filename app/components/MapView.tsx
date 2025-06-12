@@ -8,7 +8,6 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import L, { LatLngBounds } from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import StationPanel from './StationPanel';
 
 /* Leaflet icon paths */
