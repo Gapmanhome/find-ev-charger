@@ -15,21 +15,19 @@ type Props = {
 };
 
 export default function StationPanel({ station, onClose }: Props) {
-  if (!station) return null; // drawer closed
+  if (!station) return null; // panel hidden until a station is loaded
 
   return (
     <div className="station-panel">
-      <button className="close-btn" onClick={onClose}>
-        ✕
-      </button>
+      <button className="close-btn" onClick={onClose}>✕</button>
 
       <h2>{station.name}</h2>
       <p>{station.address}</p>
 
       <h3>Amenities</h3>
       <ul>
-        {Object.entries(station.amenities).map(([key, has]) =>
-          has ? <li key={key}>{key}</li> : null
+        {Object.entries(station.amenities).map(
+          ([key, has]) => has && <li key={key}>{key}</li>
         )}
       </ul>
 
@@ -56,6 +54,7 @@ export default function StationPanel({ station, onClose }: Props) {
     </div>
   );
 }
+
 
 
 

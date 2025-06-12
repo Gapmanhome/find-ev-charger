@@ -11,14 +11,14 @@ import L, { LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import StationPanel from './StationPanel';
 
-/* ---------- Leaflet default icon paths ---------- */
+/* Leaflet icon paths */
 L.Icon.Default.mergeOptions({
   iconUrl: '/marker-icon.png',
   iconRetinaUrl: '/marker-icon-2x.png',
   shadowUrl: '/marker-shadow.png',
 });
 
-/* ---------- Types ---------- */
+/* ------------ types ------------ */
 type Station = {
   id: number;
   name: string;
@@ -37,15 +37,13 @@ type Cluster = {
 const MAP_CENTER: [number, number] = [59, -96];
 const MAP_ZOOM = 4;
 
-/* ================================================= */
+/* ================================= */
 export default function MapView() {
   const mapRef = useRef<L.Map | null>(null);
   const [clusters, setClusters] = useState<Cluster[]>([]);
-
-  /* NEW: keep the whole station object, not just the number */
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
-  /* ---------- Load clusters for the current view ---------- */
+  /* load clusters for current map view */
   const fetchClusters = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
@@ -61,13 +59,7 @@ export default function MapView() {
     }
   }, []);
 
-  /* ---------- Watch pan / zoom ---------- */
-  function BoundsWatcher() {
-    useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
-    return null;
-  }
-
-  /* ---------- Helper: load one station ---------- */
+  /* helper: fetch one station row */
   async function loadStation(id: number) {
     try {
       const res = await fetch(`/api/stations/${id}`);
@@ -78,7 +70,12 @@ export default function MapView() {
     }
   }
 
-  /* ---------- JSX ---------- */
+  /* watch pan/zoom */
+  function BoundsWatcher() {
+    useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
+    return null;
+  }
+
   return (
     <>
       <MapContainer
@@ -97,7 +94,6 @@ export default function MapView() {
 
         {clusters.map((c) =>
           c.properties.cluster ? (
-            /* cluster bubble */
             <Marker
               key={`cluster-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
@@ -121,7 +117,6 @@ export default function MapView() {
               }}
             />
           ) : (
-            /* single station pin */
             <Marker
               key={`station-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
@@ -136,7 +131,7 @@ export default function MapView() {
         )}
       </MapContainer>
 
-      {/* Pass the full station object */}
+      {/* give StationPanel the full station object */}
       <StationPanel station={selectedStation} onClose={() => setSelectedStation(null)} />
 
       <style jsx global>{`
@@ -147,6 +142,7 @@ export default function MapView() {
     </>
   );
 }
+
 
 
 
