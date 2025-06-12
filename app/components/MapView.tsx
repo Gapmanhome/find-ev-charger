@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -9,15 +9,15 @@ import {
 } from 'react-leaflet';
 import L, { LatLngBounds } from 'leaflet';
 import StationPanel from './StationPanel';
+import '@fortawesome/fontawesome-free/css/all.min.css'; /* keeps icons if you need */
 
-/* Leaflet icon paths */
 L.Icon.Default.mergeOptions({
   iconUrl: '/marker-icon.png',
   iconRetinaUrl: '/marker-icon-2x.png',
   shadowUrl: '/marker-shadow.png',
 });
 
-/* ------------ types ------------ */
+/* ---------- types ---------- */
 type Station = {
   id: number;
   name: string;
@@ -36,13 +36,12 @@ type Cluster = {
 const MAP_CENTER: [number, number] = [59, -96];
 const MAP_ZOOM = 4;
 
-/* ================================= */
 export default function MapView() {
   const mapRef = useRef<L.Map | null>(null);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
-  /* load clusters for current map view */
+  /* ---------------- load clusters ---------------- */
   const fetchClusters = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
@@ -58,7 +57,7 @@ export default function MapView() {
     }
   }, []);
 
-  /* helper: fetch one station row */
+  /* --------------- load one station --------------- */
   async function loadStation(id: number) {
     try {
       const res = await fetch(`/api/stations/${id}`);
@@ -69,12 +68,21 @@ export default function MapView() {
     }
   }
 
-  /* watch pan/zoom */
+  /* -------------- watch pan / zoom ---------------- */
   function BoundsWatcher() {
     useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
     return null;
   }
 
+  /* --------------- fix white first view ----------- */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    /* allow one tick, then force Leaflet to size itself */
+    setTimeout(() => map.invalidateSize(), 0);
+  }, []);
+
+  /* ------------------- JSX ------------------------ */
   return (
     <>
       <MapContainer
@@ -93,14 +101,15 @@ export default function MapView() {
 
         {clusters.map((c) =>
           c.properties.cluster ? (
+            /* green cluster bubble */
             <Marker
               key={`cluster-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
               icon={L.divIcon({
                 className: 'cluster-bubble',
                 html: `<div>${c.properties.point_count}</div>`,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15],
+                iconSize: [34, 34],
+                iconAnchor: [17, 17],
               })}
               eventHandlers={{
                 click: () => {
@@ -116,6 +125,7 @@ export default function MapView() {
               }}
             />
           ) : (
+            /* blue station pin */
             <Marker
               key={`station-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
@@ -130,17 +140,28 @@ export default function MapView() {
         )}
       </MapContainer>
 
-      {/* give StationPanel the full station object */}
-      <StationPanel station={selectedStation} onClose={() => setSelectedStation(null)} />
+      <StationPanel
+        station={selectedStation}
+        onClose={() => setSelectedStation(null)}
+      />
 
       <style jsx global>{`
-        .cluster-bubble {
-          cursor: pointer;
+        .cluster-bubble div {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          border-radius: 17px;
+          background: #1e9d3a; /* green */
+          color: #fff;
+          font-weight: 600;
         }
       `}</style>
     </>
   );
 }
+
 
 
 

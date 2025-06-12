@@ -15,11 +15,13 @@ type Props = {
 };
 
 export default function StationPanel({ station, onClose }: Props) {
-  if (!station) return null; // panel hidden until a station is loaded
+  if (!station) return null; // hidden until a station is selected
 
   return (
-    <div className="station-panel">
-      <button className="close-btn" onClick={onClose}>✕</button>
+    <aside className="panel">
+      <button className="close" onClick={onClose}>
+        ×
+      </button>
 
       <h2>{station.name}</h2>
       <p>{station.address}</p>
@@ -32,10 +34,10 @@ export default function StationPanel({ station, onClose }: Props) {
       </ul>
 
       <style jsx>{`
-        .station-panel {
+        .panel {
           position: absolute;
-          right: 0;
           top: 0;
+          right: 0;
           width: 260px;
           height: 100%;
           background: #fff;
@@ -43,17 +45,21 @@ export default function StationPanel({ station, onClose }: Props) {
           box-shadow: -2px 0 6px rgba(0, 0, 0, 0.15);
           overflow-y: auto;
         }
-        .close-btn {
+        .close {
           float: right;
           border: none;
           background: none;
           font-size: 22px;
           cursor: pointer;
         }
+        h2 {
+          margin-top: 0;
+        }
       `}</style>
-    </div>
+    </aside>
   );
 }
+
 
 
 
