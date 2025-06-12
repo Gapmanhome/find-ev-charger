@@ -31,7 +31,6 @@ export default function MapView() {
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
 
-  /* -------------------------------- fetch ------------------------ */
   const fetchClusters = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
@@ -48,22 +47,20 @@ export default function MapView() {
     }
   }, []);
 
-  /*  useMapEvents helper */
   function BoundsWatcher() {
     useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
     return null;
   }
 
-  /* ------------------------------ JSX --------------------------- */
   return (
     <>
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        ref={map => {
-          if (map) mapRef.current = map;
+        ref={(m) => {
+          if (m) mapRef.current = m;
         }}
-        whenReady={fetchClusters}   /* first fetch only when map exists */
+        whenReady={fetchClusters}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -73,7 +70,7 @@ export default function MapView() {
 
         <BoundsWatcher />
 
-        {clusters.map(c =>
+        {clusters.map((c) =>
           c.properties.cluster ? (
             <Marker
               key={c.id}
@@ -82,6 +79,8 @@ export default function MapView() {
                 className: 'cluster-bubble',
                 html: `<div>${c.properties.point_count}</div>`,
                 iconSize: [30, 30],
+                iconAnchor: [15, 15],
+                interactive: true, /* now clickable */
               })}
               eventHandlers={{
                 click: () => {
@@ -96,16 +95,27 @@ export default function MapView() {
             <Marker
               key={`station-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
-              eventHandlers={{ click: () => setSelected(c.properties.stationId ?? null) }}
+              eventHandlers={{
+                click: () => setSelected(c.properties.stationId ?? null),
+              }}
             />
           )
         )}
       </MapContainer>
 
       <StationPanel stationId={selected} onClose={() => setSelected(null)} />
+
+      {/* cursor hint */}
+      <style jsx global>{`
+        .cluster-bubble {
+          cursor: pointer;
+        }
+      `}</style>
     </>
   );
 }
+
+
 
 
 
