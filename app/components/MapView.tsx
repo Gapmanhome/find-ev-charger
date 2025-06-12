@@ -59,7 +59,7 @@ export default function MapView() {
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
         ref={(m) => (mapRef.current = m ?? null)}
-        whenReady={fetchClusters}   /* ← no inline comment now */
+        whenReady={fetchClusters}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -80,7 +80,6 @@ export default function MapView() {
                 html: `<div>${c.properties.point_count}</div>`,
                 iconSize: [30, 30],
                 iconAnchor: [15, 15],
-                interactive: true,
               })}
               eventHandlers={{
                 click: () => {
