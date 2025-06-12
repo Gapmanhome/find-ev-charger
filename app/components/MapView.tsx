@@ -107,8 +107,8 @@ export default function MapView() {
         )}
       </MapContainer>
 
-      {/* NOTE: StationPanel now receives `station`, not `stationId` */}
-      <StationPanel station={selected} onClose={() => setSelected(null)} />
+      {/* back to stationId number */}
+      <StationPanel stationId={selected} onClose={() => setSelected(null)} />
 
       <style jsx global>{`
         .cluster-bubble {
@@ -118,6 +118,7 @@ export default function MapView() {
     </>
   );
 }
+
 
 
 
