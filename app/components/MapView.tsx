@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import {
   MapContainer,
   TileLayer,
   Marker,
   useMapEvents,
 } from 'react-leaflet';
-import L from 'leaflet';
+import L, { LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import StationPanel from './StationPanel';
 
@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
 
 type Cluster = {
   id?: number;
-  properties: { cluster?: boolean; point_count?: number };
+  properties: { cluster?: boolean; point_count?: number; stationId?: number };
   geometry: { coordinates: [number, number] };
 };
 
@@ -27,38 +27,43 @@ const MAP_CENTER: [number, number] = [59, -96];
 const MAP_ZOOM = 4;
 
 export default function MapView() {
+  const mapRef = useRef<L.Map | null>(null);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
-  const mapRef = useRef<L.Map | null>(null);
 
-  function fetchClusters() {
+  /* -------------------------------- fetch ------------------------ */
+  const fetchClusters = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
-    const b = map.getBounds();
-    const sw = b.getSouthWest();
-    const ne = b.getNorthEast();
-    const url = `/api/clusters?sw=${sw.lat},${sw.lng}&ne=${ne.lat},${ne.lng}&z=${map.getZoom()}`;
-    fetch(url)
-      .then(r => r.json())
-      .then(setClusters)
-      .catch(console.error);
-  }
 
-  /* initial fetch once map is ready */
-  useEffect(() => {
-    fetchClusters();
+    const b: LatLngBounds = map.getBounds();
+    const url = `/api/clusters?sw=${b.getSouth()},${b.getWest()}&ne=${b.getNorth()},${b.getEast()}&z=${map.getZoom()}`;
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      setClusters(json);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to load clusters', err);
+    }
   }, []);
 
-  /* refetch on pan / zoom */
-  useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
+  /*  useMapEvents helper */
+  function BoundsWatcher() {
+    useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
+    return null;
+  }
 
+  /* ------------------------------ JSX --------------------------- */
   return (
     <>
       <MapContainer
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
-        ref={mapRef}
-        whenReady={() => fetchClusters()}  {/* no arguments = no TS error */}
+        ref={map => {
+          if (map) mapRef.current = map;
+        }}
+        whenReady={fetchClusters}   /* first fetch only when map exists */
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -66,10 +71,12 @@ export default function MapView() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {clusters.map((c, i) =>
+        <BoundsWatcher />
+
+        {clusters.map(c =>
           c.properties.cluster ? (
             <Marker
-              key={i}
+              key={c.id}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
               icon={L.divIcon({
                 className: 'cluster-bubble',
@@ -87,12 +94,9 @@ export default function MapView() {
             />
           ) : (
             <Marker
-              key={c.id}
-              position={[
-                c.geometry.coordinates[1],
-                c.geometry.coordinates[0],
-              ]}
-              eventHandlers={{ click: () => setSelected(c.id ?? null) }}
+              key={`station-${c.id}`}
+              position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
+              eventHandlers={{ click: () => setSelected(c.properties.stationId ?? null) }}
             />
           )
         )}
@@ -102,6 +106,8 @@ export default function MapView() {
     </>
   );
 }
+
+
 
 
 
