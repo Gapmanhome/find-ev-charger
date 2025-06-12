@@ -11,11 +11,22 @@ import L, { LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import StationPanel from './StationPanel';
 
+/* ---------- Leaflet default icon paths ---------- */
 L.Icon.Default.mergeOptions({
   iconUrl: '/marker-icon.png',
   iconRetinaUrl: '/marker-icon-2x.png',
   shadowUrl: '/marker-shadow.png',
 });
+
+/* ---------- Types ---------- */
+type Station = {
+  id: number;
+  name: string;
+  address: string;
+  amenities: Record<string, boolean>;
+  lat: number;
+  lng: number;
+};
 
 type Cluster = {
   id?: number;
@@ -26,12 +37,15 @@ type Cluster = {
 const MAP_CENTER: [number, number] = [59, -96];
 const MAP_ZOOM = 4;
 
+/* ================================================= */
 export default function MapView() {
   const mapRef = useRef<L.Map | null>(null);
   const [clusters, setClusters] = useState<Cluster[]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
 
-  /* fetch clusters for the current map view */
+  /* NEW: keep the whole station object, not just the number */
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+
+  /* ---------- Load clusters for the current view ---------- */
   const fetchClusters = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
@@ -47,12 +61,24 @@ export default function MapView() {
     }
   }, []);
 
-  /* watch for pan / zoom */
+  /* ---------- Watch pan / zoom ---------- */
   function BoundsWatcher() {
     useMapEvents({ moveend: fetchClusters, zoomend: fetchClusters });
     return null;
   }
 
+  /* ---------- Helper: load one station ---------- */
+  async function loadStation(id: number) {
+    try {
+      const res = await fetch(`/api/stations/${id}`);
+      const station: Station = await res.json();
+      setSelectedStation(station);
+    } catch (err) {
+      console.error('Failed to load station', err);
+    }
+  }
+
+  /* ---------- JSX ---------- */
   return (
     <>
       <MapContainer
@@ -100,15 +126,18 @@ export default function MapView() {
               key={`station-${c.id}`}
               position={[c.geometry.coordinates[1], c.geometry.coordinates[0]]}
               eventHandlers={{
-                click: () => setSelected(c.properties.stationId ?? null),
+                click: () => {
+                  const id = c.properties.stationId;
+                  if (id != null) loadStation(id);
+                },
               }}
             />
           )
         )}
       </MapContainer>
 
-      {/* back to stationId number */}
-      <StationPanel stationId={selected} onClose={() => setSelected(null)} />
+      {/* Pass the full station object */}
+      <StationPanel station={selectedStation} onClose={() => setSelectedStation(null)} />
 
       <style jsx global>{`
         .cluster-bubble {
