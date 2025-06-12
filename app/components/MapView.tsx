@@ -1,4 +1,3 @@
------- START COPY ------
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
@@ -60,7 +59,7 @@ export default function MapView() {
         center={MAP_CENTER}
         zoom={MAP_ZOOM}
         ref={(m) => (mapRef.current = m ?? null)}
-        whenReady={fetchClusters}
+        whenReady={fetchClusters}   /* ← no inline comment now */
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -87,7 +86,7 @@ export default function MapView() {
                 click: () => {
                   const map = mapRef.current;
                   if (!map) return;
-                  const next = Math.min(map.getZoom() + 2, 18); // don’t zoom past 18
+                  const next = Math.min(map.getZoom() + 2, 18);
                   map.flyTo(
                     [c.geometry.coordinates[1], c.geometry.coordinates[0]],
                     next,
@@ -119,7 +118,7 @@ export default function MapView() {
     </>
   );
 }
------- END COPY ------
+
 
 
 
